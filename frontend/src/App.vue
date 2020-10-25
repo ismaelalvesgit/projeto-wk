@@ -2,7 +2,7 @@
   <div id="app">
     <md-toolbar class="md-primary">
       <h3 class="md-title" style="flex: 1">
-        Olá {{usuario == null ? "": usuario.nome}} Bem-vindo(a)
+        Olá {{usuario.nome}} Bem-vindo(a)
       </h3>
       <md-button class="md-icon-button" @click="reset()">
         <md-tooltip md-direction="top">Resetar Conta</md-tooltip>
@@ -36,6 +36,11 @@ export default {
       MainService.getUsuarioIntial().catch(()=> window.localStorage.removeItem('token'))
     }
   },
+  mounted(){
+    if(this.usuario == null){
+      this.refresh()
+    }
+  },
   data(){
     return {
       activeVal:"Home"
@@ -56,6 +61,9 @@ export default {
       MainService.getUsuarioIntial().then(()=>{
         window.location.reload()
       })
+    },
+    refresh:()=>{
+      window.location.reload()
     }
   }
 }
