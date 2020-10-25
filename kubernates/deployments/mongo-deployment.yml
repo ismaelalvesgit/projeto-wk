@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  mongo-db
+  labels:
+    app: mongo-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app:  mongo-db
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            preference:
+              matchExpressions:
+              - key: servertype
+                operator: In
+                values:
+                - M6
+      containers:
+      - image: mongo:3.4.9
+        name: mongo-db
+        command:
+          - mongod
+          - --auth
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: user  
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: password      
+        ports:
+        - containerPort:  27017
+          name:  mongo-db-port
+        volumeMounts:
+        - mountPath: /data/db
+          name: mongo-db-data
+      volumes:
+        - name: mongo-db-data
+          persistentVolumeClaim:
+            claimName: mongo-db-pvc

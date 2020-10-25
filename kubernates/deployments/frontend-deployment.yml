@@ -1,0 +1,41 @@
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2   
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - image: frontend
+          name: frontend
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: frontend-port
+          livenessProbe:
+            httpGet:
+              path: /
+              port: frontend-port
+            initialDelaySeconds: 15
+            timeoutSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: frontend-port
+            initialDelaySeconds: 15
+            timeoutSeconds: 30
+         

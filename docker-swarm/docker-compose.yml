@@ -1,0 +1,147 @@
+version: '3.8'
+
+services: 
+  netdata:
+    image: netdata/netdata
+    hostname: localhost # set to fqdn of host
+    ports:
+      - 19999:19999
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - apparmor:unconfined
+    # volumes:
+    #   - /etc/passwd:/host/etc/passwd:ro
+    #   - /etc/group:/host/etc/group:ro
+    #   - /proc:/host/proc:ro
+    #   - /sys:/host/sys:ro
+    deploy:
+      replicas: 1
+      placement:
+        max_replicas_per_node: 1
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+  mongo:
+    image: mongo:3.4.9
+    command: 
+      - --auth
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: wk
+    ports:
+      - 27017:27017
+    volumes:
+      - mongoDB:/data/db
+      # - /etc/localtime:/etc/localtime:ro
+      # - /etc/timezone:/etc/timezone:ro
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - "node.role==manager"
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+  backend:
+    image: backend
+    environment:
+      DB_HOST: mongo
+    # volumes: 
+      # - /etc/localtime:/etc/localtime:ro
+      # - /etc/timezone:/etc/timezone:ro
+    deploy:
+      replicas: 4
+      update_config:
+        parallelism: 2
+        delay: 10s
+      rollback_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/system/healthcheck"]
+      interval: 5m
+      timeout: 20s
+      start_period: 1m
+      retries: 2
+    ports: 
+      - 3000:3000
+    depends_on: 
+      - mongo
+  frontend:
+    image: frontend
+    # volumes: 
+    #   - /etc/localtime:/etc/localtime:ro
+    #   - /etc/timezone:/etc/timezone:ro
+    deploy:
+      replicas: 4
+      update_config:
+        parallelism: 2
+        delay: 10s
+      rollback_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 5m
+      timeout: 15s
+      start_period: 1m
+      retries: 2
+    ports: 
+      - 4200:80
+    depends_on: 
+      - backend
+  prometheus:
+    image: prom/prometheus
+    # volumes:
+    #  - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - "node.role==manager"
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+    ports:
+      - 9090:9090
+  grafana:
+    image: grafana/grafana
+    # volumes:
+    #   - ./grafana:/var/lib/grafana
+    #   - ./grafana/config:/etc/grafana
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - "node.role==manager"
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+    ports:
+      - 3001:3000
+    depends_on:
+      - prometheus
+
+networks:
+  default:
+volumes:
+  mongoDB:
