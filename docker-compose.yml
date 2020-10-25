@@ -44,7 +44,7 @@ services:
       - --auth
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: advance2020
+      MONGO_INITDB_ROOT_PASSWORD: wk
     ports:
       - 27017:27017
     volumes:
