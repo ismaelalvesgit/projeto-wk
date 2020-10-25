@@ -5,7 +5,7 @@ Este projeto foi gerado com [Vue.js](https://vuejs.org/) versão 2.6.11
 
 app view:
 
-<img src="https://raw.githubusercontent.com/ismaelalvesgit/vue-chat/master/app.png" width="800">
+<img src="https://raw.githubusercontent.com/ismaelalvesgit/projeto-wk/master/app.png" width="800">
 
 ## Development
 
