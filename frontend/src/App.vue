@@ -38,7 +38,9 @@ export default {
   },
   mounted(){
     if(this.usuario == null){
-      this.refresh()
+      setTimeout(()=>{
+        this.refresh()
+      }, 1000)
     }
   },
   data(){
